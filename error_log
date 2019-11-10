@@ -1,0 +1,1 @@
+[20-Jul-2018 13:57:03 UTC] PHP Warning:  session_destroy(): Trying to destroy uninitialized session in /home/solucion/public_html/tc/login.php on line 3

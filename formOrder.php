@@ -361,7 +361,8 @@
         if ($('#message').val()!='')
             swal("Info", $('#message').val(), "info");            
 
-        $(".money").autoNumeric('init', { currencySymbol: '', digitGroupSeparator: '.', decimalCharacter: ','});
+        $('.money').priceFormat({prefix: 'Bs. ', centsSeparator: ',', thousandsSeparator: '.'});
+        //$(".money").autoNumeric('init', { currencySymbol: '', digitGroupSeparator: '.', decimalCharacter: ','});
         //new AutoNumeric('#cost', { currencySymbol: 'Bs. ', digitGroupSeparator: '.', decimalCharacter: ','});
 
         $('#select_status').change(function (){

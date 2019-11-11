@@ -24,7 +24,8 @@
         <link rel="stylesheet" href="public/css/jquery.loadingModal.min.css" type="text/css" />
         <script src="public/js/autoNumeric.js"></script>
         <link href="public/css/style.css" rel="stylesheet" type="text/css"/>       
-        <link rel="icon" type="image/png" href="images/9EQsu.png">      
+        <link rel="icon" type="image/png" href="images/9EQsu.png">  
+        <script src="public/js/jquery.priceformat.min.js"></script>    
     </head>
     <body>
         <header>

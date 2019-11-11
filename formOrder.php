@@ -14,7 +14,7 @@
     $string = file_get_contents("data/payment_method.json");
     $json_payment_method = json_decode($string, true);        
             
-    $order = ['id'=>'','client'=>'','status'=>'','cost'=>$review,'technic'=>'','observations'=>'', 'total'=>'',
+    $order = ['id'=>'','client'=>'','status'=>'','cost'=>0,'technic'=>'','observations'=>'', 'total'=>'',
         'phone'=>'','equipment'=>'','imei'=>'','accesories'=>'','receipt_by'=>'','problem'=>'', 'powered_off'=>1,
         'no_review'=>1,'payment_method'=>'','bank'=>'','reference'=>'','ci'=>'','receipt'=>'', 'password'=>'', 'guarantee'=>'',
         'product'=>'', 'code'=>'', 'reason'=>'reparation','cost_technic_service'=>0];
@@ -319,7 +319,7 @@
                 <div class="form-group" style="margin-bottom: 0px">
                     <label class="control-label col-xs-3" for="email">Costo Serv. Téc.:</label>
                     <div class="col-xs-9">
-                        <input class="form-control input-sm money" data-a-dec="," data-a-sep="." data-a-sign="Bs. " id="cost_technic_service" name="cost_technic_service" value="<?=$order['cost_technic_service']?>">
+                        <input class="form-control input-sm money" id="cost_technic_service" name="cost_technic_service" value="<?=$order['cost_technic_service']?>">
                     </div>
                 </div>
                 <div class="form-group" style="margin-bottom: 0px">
@@ -332,7 +332,7 @@
             <div class="form-group" style="margin-bottom: 0px">
                 <label class="control-label col-xs-3" for="email">Costo Total:</label>
                 <div class="col-xs-9">
-                    <input class="form-control input-sm money" data-a-dec="," data-a-sep="." data-a-sign="Bs. " id="cost" name="cost" style="" value="<?=$order['cost']?>">
+                    <input class="form-control input-sm money" id="cost" name="cost" style="" value="<?=$order['cost']?>">
                 </div>
             </div>                
         </td>            

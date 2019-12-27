@@ -5,7 +5,8 @@
     
     setlocale(LC_ALL,"es_ES");
     $string = file_get_contents("data/status.json");
-    $json_status = json_decode($string, true);    
+    $json_status = json_decode($string, true);
+    include_once 'config/config.php';        
 ?>    
 
 <!DOCTYPE html>
@@ -13,7 +14,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>tecnocell</title>
+        <title><?=$companyTitle?></title>
         <script src="public/js/jquery-1.12.4.js"></script>
         <script src="public/js/jquery-ui.js"></script>
         <script src="public/js/bootstrap.min.js"></script>

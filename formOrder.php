@@ -1,151 +1,218 @@
 <?php 
-    include_once 'functions.php';
-    
-    $string = file_get_contents("data/status.json");
-    $json_status = json_decode($string, true);    
-    
-    $string = file_get_contents("data/receipt.json");
-    $json_receipt = json_decode($string, true);    
+  include_once 'functions.php';  
+  
+  $string = file_get_contents("data/status.json");
+  $json_status = json_decode($string, true);    
+  
+  $string = file_get_contents("data/receipt.json");
+  $json_receipt = json_decode($string, true);    
 
-    $string = file_get_contents("data/review.json");
-    $json_review = json_decode($string, true);            
-    $review = $json_review[0]['review'];
-    
-    $string = file_get_contents("data/payment_method.json");
-    $json_payment_method = json_decode($string, true);        
-            
-    $order = ['id'=>'','client'=>'','status'=>'','cost'=>0,'technic'=>'','observations'=>'', 'total'=>'',
-        'phone'=>'','equipment'=>'','imei'=>'','accesories'=>'','receipt_by'=>'','problem'=>'', 'powered_off'=>1,
-        'no_review'=>1,'payment_method'=>'','bank'=>'','reference'=>'','ci'=>'','receipt'=>'', 'password'=>'', 'guarantee'=>'',
-        'product'=>'', 'code'=>'', 'reason'=>'reparation','cost_technic_service'=>0];
-    
-    $new = true;
-    $succesful = false;
-    $id_order = 0;
-    $print_disabled = ($id_order==0)?'':'disabled';
-    
-    if (isset($_GET['id'])) {
-        $query = "SELECT * FROM orders WHERE id = ".$_GET['id']; 
-        $db = getConnection();
-        $stmt = $db->prepare($query);
-        $stmt->execute();            
-        $stmt->setFetchMode(PDO::FETCH_ASSOC);         
-        
-        $order = $stmt->fetchAll();              
-        $order = $order[0];
+  $string = file_get_contents("data/review.json");
+  $json_review = json_decode($string, true);            
+  $review = $json_review[0]['review'];
+  
+  $string = file_get_contents("data/payment_method.json");
+  $json_payment_method = json_decode($string, true);        
+          
+  $order = ['id'=>'','client'=>'','status'=>'','cost'=>0,'technic'=>'','observations'=>'', 'total'=>'',
+      'phone'=>'','equipment'=>'','imei'=>'','accesories'=>'','receipt_by'=>'','problem'=>'', 'powered_off'=>1,
+      'no_review'=>1,'payment_method'=>'','bank'=>'','reference'=>'','ci'=>'','receipt'=>'', 'password'=>'', 'guarantee'=>'',
+      'product'=>'', 'code'=>'', 'reason'=>'reparation','cost_technic_service'=>0,'perc_technic'=>''];
 
-        $id_order = $_GET['id'];
-        $new = false;    
-    }        
+  $soldQuantity = ["","","","","","","",""];
+  $soldDescription = ["","","","","","","",""];
+  $soldTotal = ["","","","","","","",""];       
 
-    $query = "SELECT * FROM technicians"; 
+  for ($i=0;$i<8;$i++) {
+      $sold[] = '';
+  }     
+  
+  $new = true;
+  $succesful = false;
+  $id_order = 0;
+  $print_disabled = ($id_order==0)?'':'disabled';
+  
+  if (isset($_GET['id'])) {
+      $query = "SELECT * FROM orders WHERE id = ".$_GET['id']; 
+      $db = getConnection();
+      $stmt = $db->prepare($query);
+      $stmt->execute();            
+      $stmt->setFetchMode(PDO::FETCH_ASSOC);         
+      
+      $order = $stmt->fetchAll();              
+      $order = $order[0];
+
+      //getDataSold($_GET['id']);
+
+      $query = "SELECT * FROM goods_sold WHERE id_order = ".$_GET['id']; 
+      $db = getConnection();
+      $stmt = $db->prepare($query);
+      $stmt->execute();            
+      $stmt->setFetchMode(PDO::FETCH_ASSOC);         
+      
+      $solds = $stmt->fetchAll();
+      $soldQuantity = ["","","","","","","",""];
+      $soldDescription = ["","","","","","","",""];
+      $soldTotal = ["","","","","","","",""];      
+
+      $indexSold = 0;
+      foreach ($solds as $sold) {
+        $soldQuantity[$indexSold] = $sold['quantity'];
+        $soldDescription[$indexSold] = $sold['description'];
+        $soldTotal[$indexSold] = $sold['total'];
+        $indexSold++;        
+      } 
+
+      $id_order = $_GET['id'];
+      $new = false;    
+  }        
+
+  $query = "SELECT * FROM technicians"; 
+  $db = getConnection();
+  $stmt = $db->prepare($query);
+  $stmt->execute();            
+  $stmt->setFetchMode(PDO::FETCH_ASSOC);         
+
+  $technicians = $stmt->fetchAll();              
+
+  if ($_POST){
+
+      $order_post = $_POST;  
+
+      $order_post['client'] = (empty($order_post['client']))?'':$order_post['client'];
+      $order_post['ci'] = (empty($order_post['ci']))?'':$order_post['ci'];
+      $order_post['phone'] = (empty($order_post['phone']))?'':$order_post['phone'];
+      $order_post['password'] = (empty($order_post['password']))?'':$order_post['password'];    
+      $order_post['equipment'] = (empty($order_post['equipment']))?'':$order_post['equipment'];
+      $order_post['imei'] = (empty($order_post['imei']))?'':$order_post['imei'];
+      $order_post['accesories'] = (empty($order_post['accesories']))?'':$order_post['accesories'];
+      $order_post['receipt_by'] = (empty($order_post['receipt_by']))?'':$order_post['receipt_by'];        
+      $order_post['problem'] = (empty($order_post['problem']))?'':$order_post['problem'];
+      $order_post['observations'] = (empty($order_post['observations']))?'':$order_post['observations'];
+      $order_post['cost'] = str_replace(['Bs. ', '.'], "", $order_post['cost']);
+      $order_post['cost'] = str_replace([','], ".", $order_post['cost']);
+      //$order_post['cost'] = (empty($order_post['cost']))?0:str_replace(['Bs. ', '.', ',00'], "", $order_post['cost']);    
+      $order_post['powered_off'] = (empty($order_post['powered_off']))?0:$order_post['powered_off'];
+      $order_post['no_review'] = (empty($order_post['no_review']))?0:$order_post['no_review'];
+      $order_post['total'] = (empty($order_post['total']))?0:$order_post['total'];
+      $order_post['payment_method'] = (empty($order_post['payment_method']))?'':$order_post['payment_method'];            
+      $order_post['bank'] = (empty($order_post['bank']))?'':$order_post['bank'];
+      $order_post['reference'] = (empty($order_post['reference']))?'':$order_post['reference'];
+      $order_post['select_status'] = (empty($order_post['select_status']))?'Recibido':$order_post['select_status'];
+      $order_post['guarantee'] = (empty($order_post['guarantee']))?0:$order_post['guarantee'];
+      $order_post['product'] = (empty($order_post['product']))?'':$order_post['product'];
+      $order_post['code'] = (empty($order_post['code']))?'':$order_post['code'];
+      $order_post['reason'] = (empty($order_post['reason']))?'reparation':$order_post['reason'];
+      $order_post['technic'] = (empty($order_post['technic']))?0:$order_post['technic'];
+      $order_post['select_status'] = ($order_post['reason']=='sell')?'Entregado':$order_post['select_status'];
+      $order_post['cost_technic_service'] = str_replace(['Bs. ', '.'], "", $order_post['cost_technic_service']);
+      $order_post['cost_technic_service'] = str_replace([','], ".", $order_post['cost_technic_service']);        
+      $order_post['perc_technic'] = (empty($order_post['perc_technic']))?0:$order_post['perc_technic'];
+
+      if (empty($_POST['id_order'])){
+          $sql = "INSERT INTO `orders` (`client`, `ci`, `phone`, `password`, `equipment`, `imei`, `accesories`, `receipt_by`, `status`, `technic`, "
+              . "`problem`, `observations`, `cost`, `received_date`, `powered_off`, `no_review`, `total`, `payment_method`, `bank`, "
+              . "`reference`, `guarantee`, `product`, `code`, `reason`, cost_technic_service, perc_technic) "
+              . "VALUES ('".$order_post['client']."', '".$order_post['ci']."', '".$order_post['phone']."', '".$order_post['password']."', '".$order_post['equipment']."', "
+              . "'".$order_post['imei']."', '".$order_post['accesories']."', '".$order_post['receipt_by']."', '".$order_post['select_status']."', ".$order_post['technic'].", "
+              . "'".$order_post['problem']."', '".$order_post['observations']."', '".$order_post['cost']."', '".date("Y-m-d H:i:s")."', '".$order_post['powered_off']."', "
+              . "'".$order_post['no_review']."', '".$order_post['total']."', '".$order_post['payment_method']."', '".$order_post['bank']."', '".$order_post['reference']."', '".$order_post['guarantee']."',"
+              . "'".$order_post['product']."', '".$order_post['code']."', '".$order_post['reason']."', '".$order_post['cost_technic_service']."', '".$order_post['perc_technic']."')";        
+          $succesful = $db->exec($sql);            
+          $id_order  = $db->lastInsertId();
+          $action = 'creada';
+          
+      }else{
+          $sql = "UPDATE `orders` SET `client` = '".$order_post['client']."', `ci` = '".$order_post['ci']."', `phone` = '".$order_post['phone']."', "
+                  . "`password` = '".$order_post['password']."', `equipment` = '".$order_post['equipment']."', `imei` = '".$order_post['imei']."', "
+                  . "`accesories` = '".$order_post['accesories']."', `receipt_by` = '".$order_post['receipt_by']."', `status` = '".$order_post['select_status']."', "
+                  . "`problem` = '".$order_post['problem']."', `observations` = '".$order_post['observations']."', `cost` = '".$order_post['cost']."', "
+                  . "`powered_off` = '".$order_post['powered_off']."', `no_review` = '".$order_post['no_review']."', `total` = '".$order_post['total']."', "
+                  . "`payment_method` = '".$order_post['payment_method']."', `bank` = '".$order_post['bank']."', `reference` = '".$order_post['reference']."', "
+                  . "`technic` = '".$order_post['technic']."', `code` = '".$order_post['code']."', `guarantee` = '".$order_post['guarantee']."', "
+                  . "`reason` = '".$order_post['reason']."', `product` = '".$order_post['product']."', `cost_technic_service` = '".$order_post['cost_technic_service']."', "
+                  . "`perc_technic` = '".$order_post['perc_technic']."' WHERE `orders`.`id` = ".$order_post['id_order'];
+          $succesful = $db->exec($sql);
+          $id_order = $order_post['id_order'];            
+          $action = 'editada';
+
+      }        
+
+  if ($order_post['reason']!='reparation') {
+    if (!empty($_POST['id_order'])){
+        $db->exec("DELETE FROM goods_sold WHERE id_order = $id_order");
+    }   
+
+    for ($i=0;$i<8;$i++) {
+        $quantity = $order_post["good_quantity$i"];
+        $description = $order_post["good_description$i"];
+        $total = $order_post["good_total$i"];
+        $total = str_replace(['Bs. ', '.'], "", $total);
+        $total = str_replace([','], ".", $total);        
+
+        if (!empty($order_post["good_quantity$i"])) {
+            $sql = "INSERT INTO `goods_sold` (`id`, `id_order`, `quantity`, `description`, `total`) " 
+            . "VALUES (NULL, $id_order, $quantity, '".$description."', $total)";
+            $db->exec($sql);
+        }
+    }
+
+    $query = "SELECT * FROM goods_sold WHERE id_order = ".$id_order; 
     $db = getConnection();
     $stmt = $db->prepare($query);
     $stmt->execute();            
     $stmt->setFetchMode(PDO::FETCH_ASSOC);         
-
-    $technicians = $stmt->fetchAll();              
-
-    if ($_POST){
-
-        $order_post = $_POST;   
-
-        $order_post['client'] = (empty($order_post['client']))?'':$order_post['client'];
-        $order_post['ci'] = (empty($order_post['ci']))?'':$order_post['ci'];
-        $order_post['phone'] = (empty($order_post['phone']))?'':$order_post['phone'];
-        $order_post['password'] = (empty($order_post['password']))?'':$order_post['password'];    
-        $order_post['equipment'] = (empty($order_post['equipment']))?'':$order_post['equipment'];
-        $order_post['imei'] = (empty($order_post['imei']))?'':$order_post['imei'];
-        $order_post['accesories'] = (empty($order_post['accesories']))?'':$order_post['accesories'];
-        $order_post['receipt_by'] = (empty($order_post['receipt_by']))?'':$order_post['receipt_by'];        
-        $order_post['problem'] = (empty($order_post['problem']))?'':$order_post['problem'];
-        $order_post['observations'] = (empty($order_post['observations']))?'':$order_post['observations'];
-        $order_post['cost'] = str_replace(['Bs. ', '.'], "", $order_post['cost']);
-        $order_post['cost'] = str_replace([','], ".", $order_post['cost']);
-        //$order_post['cost'] = (empty($order_post['cost']))?0:str_replace(['Bs. ', '.', ',00'], "", $order_post['cost']);    
-        $order_post['powered_off'] = (empty($order_post['powered_off']))?0:$order_post['powered_off'];
-        $order_post['no_review'] = (empty($order_post['no_review']))?0:$order_post['no_review'];
-        $order_post['total'] = (empty($order_post['total']))?0:$order_post['total'];
-        $order_post['payment_method'] = (empty($order_post['payment_method']))?'':$order_post['payment_method'];            
-        $order_post['bank'] = (empty($order_post['bank']))?'':$order_post['bank'];
-        $order_post['reference'] = (empty($order_post['reference']))?'':$order_post['reference'];
-        $order_post['select_status'] = (empty($order_post['select_status']))?'Recibido':$order_post['select_status'];
-        $order_post['guarantee'] = (empty($order_post['guarantee']))?0:$order_post['guarantee'];
-        $order_post['product'] = (empty($order_post['product']))?'':$order_post['product'];
-        $order_post['code'] = (empty($order_post['code']))?'':$order_post['code'];
-        $order_post['reason'] = (empty($order_post['reason']))?'reparation':$order_post['reason'];
-        $order_post['technic'] = (empty($order_post['technic']))?0:$order_post['technic'];
-        $order_post['select_status'] = ($order_post['reason']=='sell')?'Entregado':$order_post['select_status'];
-        $order_post['cost_technic_service'] = str_replace(['Bs. ', '.'], "", $order_post['cost_technic_service']);
-        $order_post['cost_technic_service'] = str_replace([','], ".", $order_post['cost_technic_service']);        
-        $order_post['perc_technic'] = (empty($order_post['perc_technic']))?0:$order_post['perc_technic'];
-
-        if (empty($_POST['id_order'])){
-            $sql = "INSERT INTO `orders` (`client`, `ci`, `phone`, `password`, `equipment`, `imei`, `accesories`, `receipt_by`, `status`, `technic`, "
-                . "`problem`, `observations`, `cost`, `received_date`, `powered_off`, `no_review`, `total`, `payment_method`, `bank`, "
-                . "`reference`, `guarantee`, `product`, `code`, `reason`, cost_technic_service, perc_technic) "
-                . "VALUES ('".$order_post['client']."', '".$order_post['ci']."', '".$order_post['phone']."', '".$order_post['password']."', '".$order_post['equipment']."', "
-                . "'".$order_post['imei']."', '".$order_post['accesories']."', '".$order_post['receipt_by']."', '".$order_post['select_status']."', ".$order_post['technic'].", "
-                . "'".$order_post['problem']."', '".$order_post['observations']."', '".$order_post['cost']."', '".date("Y-m-d H:i:s")."', '".$order_post['powered_off']."', "
-                . "'".$order_post['no_review']."', '".$order_post['total']."', '".$order_post['payment_method']."', '".$order_post['bank']."', '".$order_post['reference']."', '".$order_post['guarantee']."',"
-                . "'".$order_post['product']."', '".$order_post['code']."', '".$order_post['reason']."', '".$order_post['cost_technic_service']."', '".$order_post['perc_technic']."')";        
-            $succesful = $db->exec($sql);            
-            $id_order  = $db->lastInsertId();
-            $action = 'creada';
-            
-        }else{
-            $sql = "UPDATE `orders` SET `client` = '".$order_post['client']."', `ci` = '".$order_post['ci']."', `phone` = '".$order_post['phone']."', "
-                    . "`password` = '".$order_post['password']."', `equipment` = '".$order_post['equipment']."', `imei` = '".$order_post['imei']."', "
-                    . "`accesories` = '".$order_post['accesories']."', `receipt_by` = '".$order_post['receipt_by']."', `status` = '".$order_post['select_status']."', "
-                    . "`problem` = '".$order_post['problem']."', `observations` = '".$order_post['observations']."', `cost` = '".$order_post['cost']."', "
-                    . "`powered_off` = '".$order_post['powered_off']."', `no_review` = '".$order_post['no_review']."', `total` = '".$order_post['total']."', "
-                    . "`payment_method` = '".$order_post['payment_method']."', `bank` = '".$order_post['bank']."', `reference` = '".$order_post['reference']."', "
-                    . "`technic` = '".$order_post['technic']."', `code` = '".$order_post['code']."', `guarantee` = '".$order_post['guarantee']."', "
-                    . "`reason` = '".$order_post['reason']."', `product` = '".$order_post['product']."', `cost_technic_service` = '".$order_post['cost_technic_service']."', "
-                    . "`perc_technic` = '".$order_post['perc_technic']."' WHERE `orders`.`id` = ".$order_post['id_order'];
-            $succesful = $db->exec($sql);
-            $id_order = $order_post['id_order'];            
-            $action = 'editada';
-
-        }        
-
-
-        if (($order_post['select_status']=="Entregado")&&(empty($order_post['delivered_date']))){
-            $sql = "UPDATE orders SET delivered_date = '".date("Y-m-d H:i:s")."' WHERE orders.id = ".$id_order;
-            $db->exec($sql);            
-        }
-        
-        if (($order_post['select_status']!="Entregado")&&(!empty($order_post['delivered_date']))){
-            $sql = "UPDATE orders SET delivered_date = NULL WHERE orders.id = ".$id_order;
-            $db->exec($sql);            
-        }        
-
-        if ($order_post['select_status']=="Garantía"){
-            $sql = "UPDATE orders SET received_date = '".date("Y-m-d H:i:s")."', delivered_date = null,
-                payment_method = null, bank = null, reference = null
-                WHERE orders.id = ".$id_order;
-            $db->exec($sql);            
-        }
-
-        $query = "SELECT * FROM orders WHERE id = ".$id_order; 
-        $db = getConnection();
-        $stmt = $db->prepare($query);
-        $stmt->execute();            
-        $stmt->setFetchMode(PDO::FETCH_ASSOC);         
-        
-        $order = $stmt->fetchAll();              
-        $order = $order[0];        
-        
-        $order['id_order'] = $id_order;
-        $order['id'] = $id_order;
-    }    
     
-    if (!empty($order['delivered_date'])){
-        $delivered_date = new Datetime($order['delivered_date']);
-        $delivered = " Entregado: ".$delivered_date->format('d/m/Y');        
-    }else{
-        $delivered = "";
-    }
+    $solds = $stmt->fetchAll();
+    $soldQuantity = ["","","","","","","",""];
+    $soldDescription = ["","","","","","","",""];
+    $soldTotal = ["","","","","","","",""];      
+
+    $indexSold = 0;
+    foreach ($solds as $sold) {
+      $soldQuantity[$indexSold] = $sold['quantity'];
+      $soldDescription[$indexSold] = $sold['description'];
+      $soldTotal[$indexSold] = $sold['total'];
+      $indexSold++;        
+    }     
+  }
+
+      if (($order_post['select_status']=="Entregado")&&(empty($order_post['delivered_date']))){
+          $sql = "UPDATE orders SET delivered_date = '".date("Y-m-d H:i:s")."' WHERE orders.id = ".$id_order;
+          $db->exec($sql);            
+      }
+      
+      if (($order_post['select_status']!="Entregado")&&(!empty($order_post['delivered_date']))){
+          $sql = "UPDATE orders SET delivered_date = NULL WHERE orders.id = ".$id_order;
+          $db->exec($sql);            
+      }        
+
+      if ($order_post['select_status']=="Garantía"){
+          $sql = "UPDATE orders SET received_date = '".date("Y-m-d H:i:s")."', delivered_date = null,
+              payment_method = null, bank = null, reference = null
+              WHERE orders.id = ".$id_order;
+          $db->exec($sql);            
+      }
+
+      $query = "SELECT * FROM orders WHERE id = ".$id_order; 
+      $db = getConnection();
+      $stmt = $db->prepare($query);
+      $stmt->execute();            
+      $stmt->setFetchMode(PDO::FETCH_ASSOC);         
+      
+      $order = $stmt->fetchAll();              
+      $order = $order[0];        
+      
+      $order['id_order'] = $id_order;
+      $order['id'] = $id_order;
+  }    
+  
+  if (!empty($order['delivered_date'])){
+      $delivered_date = new Datetime($order['delivered_date']);
+      $delivered = " Entregado: ".$delivered_date->format('d/m/Y');        
+  }else{
+      $delivered = "";
+  }
 
 ?>
 <thead>
@@ -201,18 +268,7 @@
                 </div>
             </div>                              
             <div id="case_sell" style="<?=($order['reason']=='reparation')?'display: none':''?>">
-                <div class="form-group" style="margin-bottom: 0px">
-                    <label class="control-label col-xs-3" for="email">Producto:</label>
-                    <div class="col-xs-9">
-                        <input onkeyup="uppercase(this)" class="form-control input-sm" id="product" name="product" value="<?=$order['product']?>">
-                    </div>
-                </div>                                                    
-                <div class="form-group" style="margin-bottom: 0px">
-                    <label class="control-label col-xs-3" for="email">Codigo:</label>
-                    <div class="col-xs-9">
-                        <input onkeyup="uppercase(this)" class="form-control input-sm" id="code" name="code" value="<?=$order['code']?>">
-                    </div>
-                </div>                                                                    
+                <?php include 'formSell.php'?>
             </div>
             <div id="case_reparation" style="<?=($order['reason']=='sell')?'display: none':''?>">
                 <div class="form-group" style="margin-bottom: 0px">
@@ -292,7 +348,7 @@
                     </div>
                 </div>
             </div>
-            <div id="case_delivered" style="display: <?=($order['status']=='Entregado')?'block':'none'?>">
+            <div id="case_delivered" style="display: <?=($order['status']=='Entregado' && $order['reason']=='reparation')?'block':'none'?>">
                 <div class="form-group" style="margin-bottom: 0px">
                     <label class="control-label col-xs-3" for="email">Método pago:</label>
                     <div class="col-xs-9">
@@ -340,9 +396,15 @@
     <tr><td style="padding: 0px"><input type="submit" class="btn btn-success btn-block" value="Aceptar"></td></tr>  
     <tr>
         <td style="padding: 0px">
+            <?php if ($order['reason']=='reparation'):?>
             <a href="printOrder.php?id=<?=$id_order?>" target="_blank" class="btn btn-info btn-block <?=($id_order==0)?'disabled':''?>" role="button">
                 Imprimir
             </a>
+            <?php else:?>
+            <a href="printSell.php?id=<?=$id_order?>" target="_blank" class="btn btn-info btn-block <?=($id_order==0)?'disabled':''?>" role="button">
+                Imprimir
+            </a>
+            <?php endif;?>
             <!--<a href="#" onclick='window.open("printOrder.php?id=<?=$id_order?>");return false;' class="btn btn-info btn-block <?=($id_order==0)?'disabled':''?>" role="button">
                 Imprimir
             </a> -->           
@@ -354,6 +416,35 @@
     
     function uppercase(input){
         input.value = input.value.toUpperCase();
+    }
+
+    function calcSoldTotal(input) {
+      /*let total = $('#cost').val();
+      total = total.replace("Bs. ", "");
+      total = total.replace(/\./g, "");
+      total = total.replace(",", ".");*/
+
+      let total = 0;
+      document.querySelectorAll('.goodTotal').forEach(function(key) {
+        let mount = key.value;        
+        mount = mount.replace("Bs. ", "");
+        mount = mount.replace(/\./g, "");
+        mount = mount.replace(",", ".");   
+        if (!isNaN(parseFloat(mount))) {
+          total = parseFloat(mount) + parseFloat(total);      
+        }                 
+        console.log('total', total);          
+      });      
+
+      /*for (let i=0;i<8;i++) {
+        let aux = `'#good_total${i}'`;
+        console.log($('#good_total0').val());
+
+      }*/
+
+      //total = parseFloat(mount*100) + parseFloat(total*100);
+      $('#cost').val(total*100);
+      $('#cost').priceFormat({prefix: 'Bs. ', centsSeparator: ',', thousandsSeparator: '.'});
     }
     
     $( document ).ready(function(){ 
@@ -399,7 +490,7 @@
                 //$('#case_sell').fadeIn();                
                 $('#case_reparation').hide();            
                 $('#case_sell').show();
-                $('#case_delivered').show();   
+                $('#case_delivered').hide();   
                 $('#label_receipt').text('Vendido por:');
             }
             

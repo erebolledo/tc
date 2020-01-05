@@ -41,7 +41,7 @@
                         </button>
                         <a href="/tc" class="navbar-brand">
                             <h1 style="font-weight: bolder;color: #01274b; color: white; margin: 0px;">
-                                Tecno<font color="orange">Cell</font>
+                                <?=$companyName?>
                             </h1>
                         </a>
                     </div>

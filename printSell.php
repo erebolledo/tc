@@ -216,7 +216,7 @@
             }                        
         </style>
     </head>
-        <body style="font-size: 12" onload="window.print(); window.close();">
+        <body style="font-size: 12" onload="imprimir()">
         <!--<body style="font-size: 12">-->
         <div class="container-fluid" style="border: 1px black solid; width: 210mm; height: 135mm; padding: 10px; margin: 0">
             <img src="images/logo.png" alt="logo" width="160" height="50" style="
@@ -259,6 +259,11 @@
 </html>
 
 <script language="javascript">    
+	function imprimir() {
+		window.print();
+		setTimeout(function(){ window.close(); }, 1000);
+	}
+
     $( document ).ready(function(){      
         $(".money").autoNumeric('init', { currencySymbol: '', digitGroupSeparator: '.', decimalCharacter: ','});
     });        

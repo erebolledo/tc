@@ -141,6 +141,9 @@
   if ($order_post['reason']!='reparation') {
     if (!empty($_POST['id_order'])){
         $db->exec("DELETE FROM goods_sold WHERE id_order = $id_order");
+    }else{
+        $sql = "UPDATE orders SET delivered_date = '".date("Y-m-d H:i:s")."' WHERE orders.id = ".$id_order;      
+        $db->exec($sql);
     }   
 
     for ($i=0;$i<8;$i++) {
